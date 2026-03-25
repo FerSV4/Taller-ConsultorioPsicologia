@@ -1,0 +1,14 @@
+LINK REPOSITORIO:
+https://github.com/FerSV4/Taller-ConsultorioPsicologia
+
+Se necesita:
+Angular
+node
+
+
+Comandos dependencias necesarias:
+npm install @fullcalendar/angular @fullcalendar/core @fullcalendar/daygrid @fullcalendar/timegrid @fullcalendar/interaction @fullcalendar/core/locales/es @supabase/supabase-js
+
+
+Ejecutar el proyecto en la raíz del proyecto:
+ng serve
