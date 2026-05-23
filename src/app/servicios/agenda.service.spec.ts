@@ -58,4 +58,18 @@ describe('AgendaService', () => {
     
     expect(res).toBe('Horario ocupado por Maria Gomez');
   });
+
+      // 4. Registro correcto
+  it('registrar cita libre', async () => {
+    mockRespuesta = { data: null, error: null };
+    
+    const citaPrueba = {
+      nombre: 'Ana', apellido: 'Paz', ci: '444', telefono: '111',
+      fecha: '2026-10-10', hora_inicio: '10:00', hora_fin: '11:00', nota: ''
+    };
+
+    const res = await service.registrarCita(citaPrueba);
+    
+    expect(res).toBeNull();
+  });
 });
