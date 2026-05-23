@@ -45,5 +45,17 @@ describe('AgendaService', () => {
     expect(citas[0].nombre).toBe('Juan');
   });
 
+  // 3. Pruba de negocio, choque de horario de citas
+  it('rechazar choque de horarios', async () => {
+    mockRespuesta = { data: { nombre: 'Maria', apellido: 'Gomez' }, error: null };
 
+    const citaPrueba = {
+      nombre: 'Carlos', apellido: 'Lopez', ci: '123', telefono: '777',
+      fecha: '2026-10-10', hora_inicio: '15:00', hora_fin: '16:00', nota: ''
+    };
+
+    const res = await service.registrarCita(citaPrueba);
+    
+    expect(res).toBe('Horario ocupado por Maria Gomez');
+  });
 });
