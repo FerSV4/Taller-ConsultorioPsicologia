@@ -35,4 +35,15 @@ describe('AgendaService', () => {
     expect(service).toBeTruthy();
   });
 
+  // 2. Obtener lista
+  it('obtenerCitas', async () => {
+    mockRespuesta = { data: [{ nombre: 'Juan' }], error: null };
+    
+    const citas = await service.obtenerCitas();
+    
+    expect(citas.length).toBe(1);
+    expect(citas[0].nombre).toBe('Juan');
+  });
+
+
 });
