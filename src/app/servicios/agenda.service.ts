@@ -27,6 +27,10 @@ export class AgendaService {
     this.supabase = createClient(supabaseUrl, supabaseKey);
   }
 
+  setSupabaseClient(client: SupabaseClient) {
+    this.supabase = client;
+  }
+
   async obtenerCitas(): Promise<Cita[]> {
     const { data, error } = await this.supabase
       .from('citas')
@@ -53,7 +57,7 @@ export class AgendaService {
 
     const { error } = await this.supabase.from('citas').insert([nuevaCita]);
     if (error) return error.message;
-    
+
     return null;
   }
 
