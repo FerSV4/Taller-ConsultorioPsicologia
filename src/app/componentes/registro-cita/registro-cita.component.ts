@@ -1,4 +1,4 @@
-import { Component } from '@angular/core';
+import { Component, inject } from '@angular/core';
 import { FormsModule } from '@angular/forms';
 import { Router } from '@angular/router';
 import { AgendaService } from '../../servicios/agenda.service';
@@ -16,35 +16,37 @@ import { AgendaService } from '../../servicios/agenda.service';
 
       <div class="tarjeta-formulario">
         <div class="seccion-form">
-          <label>Datos del Paciente</label>
-          <div class="fila-form">
-            <input [(ngModel)]="nombre" placeholder="Nombre (Obligatorio)">
-            <input [(ngModel)]="apellido" placeholder="Apellido">
-          </div>
+          <fieldset style="border: none; padding: 0; margin: 0;">
+            <legend class="label-seccion">Datos del Paciente</legend>
+            <div class="fila-form">
+              <input [(ngModel)]="nombre" aria-label="Nombre del paciente" placeholder="Nombre (Obligatorio)">
+              <input [(ngModel)]="apellido" aria-label="Apellido del paciente" placeholder="Apellido">
+            </div>
+            <div class="fila-form mt-10">
+              <input [(ngModel)]="ci" aria-label="Carnet de Identidad" placeholder="Carnet de Identidad">
+              <input [(ngModel)]="telefono" aria-label="Teléfono de contacto" placeholder="Telefono de contacto">
+            </div>
+          </fieldset>
+        </div>
+
+        <div class="seccion-form">
+          <label for="fecha-input" class="label-seccion">Programacion</label>
+          <input id="fecha-input" [(ngModel)]="fecha" type="date" class="w-full">
           <div class="fila-form mt-10">
-            <input [(ngModel)]="ci" placeholder="Carnet de Identidad">
-            <input [(ngModel)]="telefono" placeholder="Telefono de contacto">
+            <div>
+              <label for="hora-inicio-input" class="label-pequeno">Hora Inicio</label>
+              <input id="hora-inicio-input" [(ngModel)]="horaInicio" type="time">
+            </div>
+            <div>
+              <label for="hora-fin-input" class="label-pequeno">Hora Fin</label>
+              <input id="hora-fin-input" [(ngModel)]="horaFin" type="time">
+            </div>
           </div>
         </div>
 
         <div class="seccion-form">
-          <label>Programacion</label>
-          <input [(ngModel)]="fecha" type="date" class="w-full">
-          <div class="fila-form mt-10">
-            <div>
-              <label class="label-pequeno">Hora Inicio</label>
-              <input [(ngModel)]="horaInicio" type="time">
-            </div>
-            <div>
-              <label class="label-pequeno">Hora Fin</label>
-              <input [(ngModel)]="horaFin" type="time">
-            </div>
-          </div>
-        </div>
-
-        <div class="seccion-form">
-          <label>Observaciones</label>
-          <textarea [(ngModel)]="nota" placeholder="Notas adicionales o motivo" rows="3" class="w-full"></textarea>
+          <label for="nota-input" class="label-seccion">Observaciones</label>
+          <textarea id="nota-input" [(ngModel)]="nota" placeholder="Notas adicionales o motivo" rows="3" class="w-full"></textarea>
         </div>
 
         @if (error) {
@@ -66,7 +68,8 @@ import { AgendaService } from '../../servicios/agenda.service';
     .seccion-form { margin-bottom: 20px; padding-bottom: 15px; border-bottom: 1px solid #f1f5f9; }
     .seccion-form:last-of-type { border-bottom: none; }
     
-    .seccion-form > label { display: block; font-size: 0.9rem; color: #64748b; margin-bottom: 10px; font-weight: bold; text-transform: uppercase; }
+    /* Aqui habia el problema de accesibilidad, code smell, se cambio a label*/
+    .label-seccion { display: block; font-size: 0.9rem; color: #64748b; margin-bottom: 10px; font-weight: bold; text-transform: uppercase; }
     .label-pequeno { display: block; font-size: 0.75rem; color: #94a3b8; margin-bottom: 3px; }
     
     .fila-form { display: flex; gap: 15px; }
@@ -100,10 +103,9 @@ export class RegistroCitaComponent {
   error = '';
   cargando = false;
 
-  constructor(
-    private agendaService: AgendaService,
-    private router: Router
-  ) {}
+  //Aqui habia problemas de Inyeccion, ahora con inject funcional
+  private agendaService = inject(AgendaService);
+  private router = inject(Router);
 
   async guardar() {
     this.error = '';
@@ -140,7 +142,8 @@ export class RegistroCitaComponent {
         alert('Cita registrada.');
         this.router.navigate(['/calendario']);
       }
-    } catch (err: any) {
+    } catch (e) { 
+      // aqui habia weak typing
       this.error = 'Error del sevidor.';
     } finally {
       this.cargando = false;
