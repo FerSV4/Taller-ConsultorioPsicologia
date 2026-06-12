@@ -86,11 +86,11 @@ export class AgendaService {
     if (errorBusqueda) return 'Error';
     if (conflicto) return `Horario ocupado por ${conflicto.nombre} ${conflicto.apellido}`;
 
+    //refactor: se elimina el select porque trae datos innecesarios para el update
     const { error } = await this.supabase
       .from('citas')
       .update(citaEditada)
       .eq('id', id)
-      .select();
 
     if (error) return error.message;
     return null;
