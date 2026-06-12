@@ -88,4 +88,14 @@ describe('AgendaService', () => {
     
     expect(res).toBe('Horario ocupado por Yan Pol');
   });
+
+  it('impedir cambio de estado cuando la cita ya fue cancelada', async () => {
+    // Arrg: Se crea una cita cancelada como simulacion para esta prueba...
+    mockRespuesta = { data: { estado: 'Cancelado' }, error: null };
+
+    // Ac--As: Aqui se intenta marcarla como asistida, tiene q dar error...
+    const res = await service.actualizarEstadoCita(10, 'Asistió');
+    
+    expect(res).toBe('No se puede modificar una cita cancelada');
+  });
 });
