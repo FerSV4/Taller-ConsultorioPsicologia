@@ -21,9 +21,11 @@ describe('AgendaService', () => {
       eq: () => supabaseFalso,
       lt: () => supabaseFalso,
       gt: () => supabaseFalso,
+      neq: () => supabaseFalso,
       limit: () => supabaseFalso,
       maybeSingle: async () => mockRespuesta,
       insert: async () => mockRespuesta,
+      update: () => supabaseFalso,
       then: (resolve: any) => resolve(mockRespuesta) 
     };
 
@@ -71,5 +73,19 @@ describe('AgendaService', () => {
     const res = await service.registrarCita(citaPrueba);
     
     expect(res).toBeNull();
+  });
+
+  it('rechazar reprogramacion si choca con otra cita', async () => {
+    // Arr: Simulo una cita existente a nombre de yan pol
+    mockRespuesta = { data: { nombre: 'Yan', apellido: 'Pol' }, error: null };
+
+    const citaEditada = {
+      fecha: '2026-11-15', hora_inicio: '09:00', hora_fin: '10:00'
+    };
+
+    // Ac--As: Se hace el intento de actualizacion, ser fallido
+    const res = await service.actualizarCita(5, citaEditada);
+    
+    expect(res).toBe('Horario ocupado por Yan Pol');
   });
 });

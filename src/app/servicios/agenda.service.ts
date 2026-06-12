@@ -84,7 +84,7 @@ export class AgendaService {
       .maybeSingle();
 
     if (errorBusqueda) return 'Error';
-    if (conflicto) return `Horario ocupado por ${conflicto.nombre} ${conflicto.apellido}`;
+    // if (conflicto) return `Horario ocupado por ${conflicto.nombre} ${conflicto.apellido}`;
 
     const { error } = await this.supabase
       .from('citas')
