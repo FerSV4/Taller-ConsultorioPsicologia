@@ -30,6 +30,21 @@ export class AgendaService {
   setSupabaseClient(client: SupabaseClient) {
     this.supabase = client;
   }
+  //Code smell de DRY en esta parte.
+  private async verificarConflictoHorario(fecha: string, horaInicio: string, horaFin: string, idExcluido?: number) {
+    let query = this.supabase
+      .from('citas')
+      .select('nombre, apellido, es_bloqueo')
+      .eq('fecha', fecha)
+      .lt('hora_inicio', horaFin)
+      .gt('hora_fin', horaInicio);
+
+    if (idExcluido) {
+      query = query.neq('id', idExcluido);
+    }
+
+    return await query.limit(1).maybeSingle();
+  }
 
   async obtenerCitas(): Promise<Cita[]> {
     const { data, error } = await this.supabase
@@ -44,14 +59,9 @@ export class AgendaService {
 
   async registrarCita(nuevaCita: Cita): Promise<string | null> {
     //El refactor es quitar del select los campos que no se usan como es hora inicio y hora fin.
-    const { data: conflicto, error: errorBusqueda } = await this.supabase
-      .from('citas')
-      .select('nombre, apellido, es_bloqueo')
-      .eq('fecha', nuevaCita.fecha)
-      .lt('hora_inicio', nuevaCita.hora_fin)
-      .gt('hora_fin', nuevaCita.hora_inicio)
-      .limit(1)
-      .maybeSingle();
+    const { data: conflicto, error: errorBusqueda } = await this.verificarConflictoHorario(
+      nuevaCita.fecha, nuevaCita.hora_inicio, nuevaCita.hora_fin
+    );
 
     if (errorBusqueda) return 'Error en el servidor';
     if (conflicto) {
@@ -89,15 +99,9 @@ export class AgendaService {
   }
 
   async actualizarCita(id: number, citaEditada: Partial<Cita>): Promise<string | null> {
-    const { data: conflicto, error: errorBusqueda } = await this.supabase
-      .from('citas')
-      .select('nombre, apellido')
-      .eq('fecha', citaEditada.fecha)
-      .lt('hora_inicio', citaEditada.hora_fin)
-      .gt('hora_fin', citaEditada.hora_inicio)
-      .neq('id', id)
-      .limit(1)
-      .maybeSingle();
+    const { data: conflicto, error: errorBusqueda } = await this.verificarConflictoHorario(
+      citaEditada.fecha!, citaEditada.hora_inicio!, citaEditada.hora_fin!, id
+    );
 
     if (errorBusqueda) return 'Error';
     if (conflicto) return `Horario ocupado por ${conflicto.nombre} ${conflicto.apellido}`;
