@@ -98,4 +98,19 @@ describe('AgendaService', () => {
     
     expect(res).toBe('No se puede modificar una cita cancelada');
   });
+
+  it('rechazar el registro si la hora esta bloqueada', async () => {
+    // Arr: Se simula la situacion de un bloqueo de horario desde el mock...
+    mockRespuesta = { data: { es_bloqueo: true }, error: null };
+
+    const citaPrueba = {
+      nombre: 'Yan', apellido: 'Poloni', ci: '344', telefono: '3155312',
+      fecha: '2026-10-13', hora_inicio: '12:00', hora_fin: '13:00', nota: ''
+    };
+
+    // Ac--As: Aqui se intenta registrar la cita, pero debe ser rechazada
+    const res = await service.registrarCita(citaPrueba);
+    
+    expect(res).toBe('Horario bloqueado');
+  });
 });
