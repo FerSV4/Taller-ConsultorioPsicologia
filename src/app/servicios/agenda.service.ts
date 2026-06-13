@@ -43,9 +43,10 @@ export class AgendaService {
   }
 
   async registrarCita(nuevaCita: Cita): Promise<string | null> {
+    //El refactor es quitar del select los campos que no se usan como es hora inicio y hora fin.
     const { data: conflicto, error: errorBusqueda } = await this.supabase
       .from('citas')
-      .select('nombre, apellido, hora_inicio, hora_fin, es_bloqueo')
+      .select('nombre, apellido, es_bloqueo')
       .eq('fecha', nuevaCita.fecha)
       .lt('hora_inicio', nuevaCita.hora_fin)
       .gt('hora_fin', nuevaCita.hora_inicio)
