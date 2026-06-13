@@ -1,4 +1,4 @@
-import { Component, OnInit } from '@angular/core';
+import { Component, OnInit, inject } from '@angular/core';
 import { UpperCasePipe } from '@angular/common';
 import { AgendaService, Cita } from '../../servicios/agenda.service';
 
@@ -80,8 +80,8 @@ export class DatosComponent implements OnInit {
   citas: Cita[] = [];
   cargando = true;
 
-  constructor(private agendaService: AgendaService) {}
-
+  private agendaService = inject(AgendaService);
+  constructor() {}
   async ngOnInit() {
     try {
       this.citas = await this.agendaService.obtenerCitas();
