@@ -142,8 +142,7 @@ export class RegistroCitaComponent {
         alert('Cita registrada.');
         this.router.navigate(['/calendario']);
       }
-    } catch (e) { 
-      // aqui habia weak typing
+    } catch { 
       this.error = 'Error del sevidor.';
     } finally {
       this.cargando = false;

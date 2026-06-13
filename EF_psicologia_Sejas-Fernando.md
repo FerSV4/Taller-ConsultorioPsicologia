@@ -191,63 +191,99 @@ Cambios aplicados:
 
 ### Ciclo TDD — Prueba 3
 
-**HU:** [HU-XX] [título]
-> Como [rol] quiero [acción] para [beneficio]
+**HU:** [HU-07] [Bloqueo de horarios]
+> Como especialista(psicologo) quiero marcar horarios especifico como bloqueados para evitar que se programen citas en esos tiempos.
 
-**CA elegido:** [texto del criterio de aceptación]
+**CA elegido:** [Al intentar agendar una cita en un horario que esta marcado como bloqueado, el sistema debe mostrar un mensaje de horario bloqueado.]
 
-**Commit 1 — Rojo** [`a1b2c3d`](https://github.com/usuario/repo/commit/a1b2c3d):
+**Commit 1 — Rojo** [`7580e88`](https://github.com/FerSV4/Taller-ConsultorioPsicologia/commit/7580e887faafab535c2e96cb22e1c1a2ac091454):
 ```
-test: [HU-XX] agregar test para [CA]
+test: [HU-07] agregar prueba de mensaje de rechazo de horario bloqueado.
 ```
 Test escrito (sin el código que lo pase aún):
 ```csharp / typescript
-// snippet del test
+it('rechazar el registro si la hora esta bloqueada', async () => {
+    // Arr: Se simula la situacion de un bloqueo de horario desde el mock...
+    mockRespuesta = { data: { es_bloqueo: true }, error: null };
+
+    const citaPrueba = {
+      nombre: 'Yan', apellido: 'Poloni', ci: '344', telefono: '3155312',
+      fecha: '2026-10-13', hora_inicio: '12:00', hora_fin: '13:00', nota: ''
+    };
+
+    // Ac--As: Aqui se intenta registrar la cita, pero debe ser rechazada
+    const res = await service.registrarCita(citaPrueba);
+    
+    expect(res).toBe('Horario bloqueado');
+  });
 ```
 
 > Captura del test fallando o error de compilación:
 
-![Test rojo](capturas/[proyecto]-tdd1-rojo.png)
+![Test rojo](capturas/psico-tdd3-rojo.png)
 
 ---
 
-**Commit 2 — Verde** [`b2c3d4e`](https://github.com/usuario/repo/commit/b2c3d4e):
+**Commit 2 — Verde** [`d73bd0c`](https://github.com/FerSV4/Taller-ConsultorioPsicologia/commit/d73bd0c65917c0f1c82e953af53586a62a6df364):
 ```
-feat: [HU-XX] implementar [método] para pasar test
+feat: [HU-07] habilita valid. del bloqueo de registro de citas.
 ```
 Código mínimo para hacer pasar el test:
 ```csharp / typescript
-// snippet del código implementado
+async registrarCita(nuevaCita: Cita): Promise<string | null> {
+    const { data: conflicto, error: errorBusqueda } = await this.supabase
+      .from('citas')
+      .select('nombre, apellido, hora_inicio, hora_fin, es_bloqueo')
+      .eq('fecha', nuevaCita.fecha)
+      .lt('hora_inicio', nuevaCita.hora_fin)
+      .gt('hora_fin', nuevaCita.hora_inicio)
+      .limit(1)
+      .maybeSingle();
+
+    if (errorBusqueda) return 'Error en el servidor';
+    if (conflicto) {
+      if (conflicto.es_bloqueo) {
+        return 'Horario bloqueado';
+      }
+      return `Horario ocupado por ${conflicto.nombre} ${conflicto.apellido}`;
+    }
 ```
 
 > Captura del test pasando:
 
-![Test verde](capturas/[proyecto]-tdd1-verde.png)
+![Test verde](capturas/psico-tdd3-verde.png)
 
 ---
 
-**Commit 3 — Refactor** [`c3d4e5f`](https://github.com/usuario/repo/commit/c3d4e5f):
+**Commit 3 — Refactor** [`b29ec6f`](https://github.com/FerSV4/Taller-ConsultorioPsicologia/commit/b29ec6f728d23e4e53b84a86c8ef4a51c3bac7e5):
 ```
-refactor: [HU-XX] limpiar [aspecto mejorado]
+refactor: [HU-07] simplificar funcion, quitar datos innecesarios de supa.
 ```
 Cambios aplicados:
 ```csharp / typescript
-// snippet mejorado
+  async registrarCita(nuevaCita: Cita): Promise<string | null> {
+    //El refactor es quitar del select los campos que no se usan como es hora inicio y hora fin.
+    const { data: conflicto, error: errorBusqueda } = await this.supabase
+      .from('citas')
+      .select('nombre, apellido, es_bloqueo')
+      .eq('fecha', nuevaCita.fecha)
+      .lt('hora_inicio', nuevaCita.hora_fin)
+      .gt('hora_fin', nuevaCita.hora_inicio)
 ```
 
 > Captura del test aún pasando después del refactor:
 
-![Test post-refactor](capturas/[proyecto]-tdd1-refactor.png)
+![Test post-refactor](capturas/psico-tdd3-refactor.png)
 
 ---
 
 ### Cobertura final
 
-**Cobertura alcanzada:** X%
+**Cobertura alcanzada:** 57.5%
 
 > Captura del reporte de cobertura final:
 
-![Cobertura final](capturas/[proyecto]-cobertura-final.png)
+![Cobertura final](capturas/psico-cobertura-final.png)
 
 > Si la cobertura es <50%, pegar aquí la justificación enviada al docente:
 
