@@ -71,12 +71,12 @@ export class AgendaService {
     if (citaActual?.estado === 'Cancelado') {
       return 'No se puede modificar una cita cancelada';
     }
-
+    //Para el refactor se quita el .select y evitar traer toda la tabla innecesariamente...
     const { error } = await this.supabase
       .from('citas')
       .update({ estado: nuevoEstado })
       .eq('id', id)
-      .select();
+      
 
     if (error) return error.message;
     return null;
