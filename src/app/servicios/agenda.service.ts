@@ -62,6 +62,16 @@ export class AgendaService {
   }
 
   async actualizarEstadoCita(id: number, nuevoEstado: string): Promise<string | null> {
+    const { data: citaActual } = await this.supabase
+      .from('citas')
+      .select('estado')
+      .eq('id', id)
+      .maybeSingle();
+
+    if (citaActual?.estado === 'Cancelado') {
+      return 'No se puede modificar una cita cancelada';
+    }
+
     const { error } = await this.supabase
       .from('citas')
       .update({ estado: nuevoEstado })
