@@ -45,7 +45,7 @@ export class AgendaService {
   async registrarCita(nuevaCita: Cita): Promise<string | null> {
     const { data: conflicto, error: errorBusqueda } = await this.supabase
       .from('citas')
-      .select('nombre, apellido, hora_inicio, hora_fin')
+      .select('nombre, apellido, hora_inicio, hora_fin, es_bloqueo')
       .eq('fecha', nuevaCita.fecha)
       .lt('hora_inicio', nuevaCita.hora_fin)
       .gt('hora_fin', nuevaCita.hora_inicio)
@@ -53,7 +53,12 @@ export class AgendaService {
       .maybeSingle();
 
     if (errorBusqueda) return 'Error en el servidor';
-    if (conflicto) return `Horario ocupado por ${conflicto.nombre} ${conflicto.apellido}`;
+    if (conflicto) {
+      if (conflicto.es_bloqueo) {
+        return 'Horario bloqueado';
+      }
+      return `Horario ocupado por ${conflicto.nombre} ${conflicto.apellido}`;
+    }
 
     const { error } = await this.supabase.from('citas').insert([nuevaCita]);
     if (error) return error.message;
