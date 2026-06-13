@@ -295,48 +295,119 @@ Mínimo 3 nuevos (adicionales a los del EC2).
 
 | # | Tipo | Commit | Descripción |
 |---|---|---|---|
-| 1 | [Tipo] | [`a1b2c3d`](https://github.com/usuario/repo/commit/a1b2c3d) | [Antes: X → Después: Y] |
-| 2 | [Tipo] | [`b2c3d4e`](https://github.com/usuario/repo/commit/b2c3d4e) | [Antes: X → Después: Y] |
-| 3 | [Tipo] | [`c3d4e5f`](https://github.com/usuario/repo/commit/c3d4e5f) | [Antes: X → Después: Y] |
+| 1 | [Unused Variables] | [`64b1121`](https://github.com/FerSV4/Taller-ConsultorioPsicologia/commit/64b11217ec042dbf5c48b6687f20f2860f9ecd7e) | [Antes se declaraba variables para los errores del catch, como no eran utilizados, consume recurso entonces se limpio la variable.] |
+| 2 | [Constructor Injection] | [`e65e601`](https://github.com/FerSV4/Taller-ConsultorioPsicologia/commit/e65e6017bf3e89a0ef985b6a3b06ce157dc9ebc3) | [Antes se inyectaban los constructores de la forma antigua de constructor(), ahora se usa el inject moderno de angular.] |
+| 3 | [Duplicated Code] | [`920ff2d`](https://github.com/FerSV4/Taller-ConsultorioPsicologia/commit/920ff2da676003febee7f31f920442a7c18e6267) | [Antes la logica de verificacion de horarios estaba repetida en el codigo, ahora se unifico en una funcion verificarConflictoHorario que lo simplifica.] |
 
-### Detalle — Smell 1: [Tipo]
+### Detalle — Smell 1: [Unused Variables]
 
 **Código antes:**
 ```csharp / typescript
-// código con el smell
+} catch (e) { 
+      this.error = 'Error del sevidor.';
+    } finally {
+      this.cargando = false;
 ```
 
 **Código después:**
 ```csharp / typescript
-// código corregido
+ alert('Cita registrada.');
+        this.router.navigate(['/calendario']);
+      }
+    } catch { 
+      this.error = 'Error del sevidor.';
+    } finally {
+      this.cargando = false;
 ```
 
 ---
 
-### Detalle — Smell 2: [Tipo]
+### Detalle — Smell 2: [Constructor Injection]
 
 **Código antes:**
 ```csharp / typescript
-// código con el smell
+import { Component, OnInit } from '@angular/core';
+import { Component, OnInit } from '@angular/core';
+import { UpperCasePipe } from '@angular/common';
+import { AgendaService, Cita } from '../../servicios/agenda.service';
+
+  citas: Cita[] = [];
+  cargando = true;
+
+  constructor(private agendaService: AgendaService) {}
 ```
 
 **Código después:**
 ```csharp / typescript
-// código corregido
+import { Component, OnInit, inject } from '@angular/core';
+import { UpperCasePipe } from '@angular/common';
+import { AgendaService, Cita } from '../../servicios/agenda.service';
+
+export class DatosComponent implements OnInit {
+  citas: Cita[] = [];
+  cargando = true;
+
+  private agendaService = inject(AgendaService);
+  constructor() {}
 ```
 
 ---
 
-### Detalle — Smell 3: [Tipo]
+### Detalle — Smell 3: [Duplicated Code]
 
 **Código antes:**
 ```csharp / typescript
-// código con el smell
+ async registrarCita(nuevaCita: Cita): Promise<string | null> {
+    //El refactor es quitar del select los campos que no se usan como es hora inicio y hora fin.
+    const { data: conflicto, error: errorBusqueda } = await this.supabase
+      .from('citas')
+      .select('nombre, apellido, es_bloqueo')
+      .eq('fecha', nuevaCita.fecha)
+      .lt('hora_inicio', nuevaCita.hora_fin)
+      .gt('hora_fin', nuevaCita.hora_inicio)
+      .limit(1)
+      .maybeSingle();
+
+
+        async actualizarCita(id: number, citaEditada: Partial<Cita>): Promise<string | null> {
+    const { data: conflicto, error: errorBusqueda } = await this.supabase
+      .from('citas')
+      .select('nombre, apellido')
+      .eq('fecha', citaEditada.fecha)
+      .lt('hora_inicio', citaEditada.hora_fin)
+      .gt('hora_fin', citaEditada.hora_inicio)
+      .neq('id', id)
+      .limit(1)
+      .maybeSingle();
 ```
 
 **Código después:**
 ```csharp / typescript
-// código corregido
+//Code smell de DRY en esta parte.
+  private async verificarConflictoHorario(fecha: string, horaInicio: string, horaFin: string, idExcluido?: number) {
+    let query = this.supabase
+      .from('citas')
+      .select('nombre, apellido, es_bloqueo')
+      .eq('fecha', fecha)
+      .lt('hora_inicio', horaFin)
+      .gt('hora_fin', horaInicio);
+
+    if (idExcluido) {
+      query = query.neq('id', idExcluido);
+    }
+
+    return await query.limit(1).maybeSingle();
+  }
+
+  async registrarCita(nuevaCita: Cita): Promise<string | null> {
+   const { data: conflicto, error: errorBusqueda } = await this.verificarConflictoHorario(
+      nuevaCita.fecha, nuevaCita.hora_inicio, nuevaCita.hora_fin
+    );
+
+  async actualizarCita(id: number, citaEditada: Partial<Cita>): Promise<string | null> {
+     const { data: conflicto, error: errorBusqueda } = await this.verificarConflictoHorario(
+      citaEditada.fecha!, citaEditada.hora_inicio!, citaEditada.hora_fin!, id
+    );
 ```
 
 ---
@@ -345,37 +416,82 @@ Mínimo 3 nuevos (adicionales a los del EC2).
 
 | # | Historia de Usuario | Criterio de Aceptación | Prueba que valida ese CA | Commit |
 |---|---|---|---|---|
-| 1 | [HU título] | [Dado/Cuando/Entonces] | [NombrePrueba_Escenario_Resultado] | [`a1b2c3d`](https://github.com/usuario/repo/commit/a1b2c3d) |
-| 2 | [HU título] | [Dado/Cuando/Entonces] | [NombrePrueba_Escenario_Resultado] | [`b2c3d4e`](https://github.com/usuario/repo/commit/b2c3d4e) |
-| 3 | [HU título] | [Dado/Cuando/Entonces] | [NombrePrueba_Escenario_Resultado] | [`c3d4e5f`](https://github.com/usuario/repo/commit/c3d4e5f) |
+| 1 | [HU-03 Reprogramacion y eliminacion de citas] | [El sistema valida que el horario no se superponga con otras citas (excluyendose a si misma...)] | [rechazar reprogramacion si choca con otra cita] | [`227c026`](https://github.com/FerSV4/Taller-ConsultorioPsicologia/commit/227c0260cae584c7012ef64cc452c1dc050efafd#diff-37bcad398340204cd9cfc8354312e0e1d7dedd0cec3a1f5d385251436c03b29b) |
+| 2 | [HU-04 Control de asistencia] | [El sistema no debe permitir cambiar el estado de la cita cuando si el estado actual es 'cancelado'.] | [impedir cambio de estado cuando la cita ya fue cancelada] | [`168bc90`](https://github.com/FerSV4/Taller-ConsultorioPsicologia/commit/168bc902a7bdfa440e75262938ff926820b32187#diff-37bcad398340204cd9cfc8354312e0e1d7dedd0cec3a1f5d385251436c03b29b) |
+| 3 | [HU-07 Bloqueo de horarios] | [Al intentar agendar una cita en un horario que esta marcado como bloqueado, el sistema debe mostrar un mensaje de horario bloqueado.] | [rechazar el registro si la hora esta bloqueada] | [`7580e88`](https://github.com/FerSV4/Taller-ConsultorioPsicologia/commit/7580e887faafab535c2e96cb22e1c1a2ac091454) |
 
-### Cadena 1 — [Nombre HU]
+### Cadena 1 — [HU-03 Reprogramacion y eliminacion de citas]
 
 **Historia de Usuario:**
-> Como [rol] quiero [acción] para [beneficio]
+> Como recepcionista quiero modificar los datos de una cita existente, y el sistema debe validar las fechas para que no se superponga con otra ya definida.
 
 **Criterio de Aceptación elegido:**
-> Dado [contexto] / Cuando [acción] / Entonces [resultado esperado]
+> El sistema valida que el horario no se superponga con otras citas (excluyendose a si misma...)
 
 **Prueba que valida este CA:**
 ```csharp / typescript
-[Fact / test]
-public void Metodo_Escenario_ResultadoEsperado()
-{
-    // Arrange — setup del contexto del CA
-    // Act — ejecutar la acción del CA
-    // Assert — verificar el resultado del CA
-}
+it('rechazar reprogramacion si choca con otra cita', async () => {
+    // Arr: Simulo una cita existente a nombre de yan pol
+    mockRespuesta = { data: { nombre: 'Yan', apellido: 'Pol' }, error: null };
+
+    const citaEditada = {
+      fecha: '2026-11-15', hora_inicio: '09:00', hora_fin: '10:00'
+    };
+
+    // Ac--As: Se hace el intento de actualizacion, ser fallido
+    const res = await service.actualizarCita(5, citaEditada);
+    
+    expect(res).toBe('Horario ocupado por Yan Pol');
+  });
 ```
 
 ---
 
-### Cadena 2 — [Nombre HU]
+### Cadena 2 — [HU-04 Control de asistencia]
 
-> Mismo formato.
+**Historia de Usuario:**
+> Como especialista(psicologo) quiero marcar el estado de asistencia de una cita, pero el sistema debe bloquearlo ya que la cita fue cancelada.
+
+**Criterio de Aceptación elegido:**
+> El sistema no debe permitir cambiar el estado de la cita cuando si el estado actual es 'cancelado'.
+
+**Prueba que valida este CA:**
+```csharp / typescript
+it('impedir cambio de estado cuando la cita ya fue cancelada', async () => {
+    // Arrg: Se crea una cita cancelada como simulacion para esta prueba...
+    mockRespuesta = { data: { estado: 'Cancelado' }, error: null };
+
+    // Ac--As: Aqui se intenta marcarla como asistida, tiene q dar error...
+    const res = await service.actualizarEstadoCita(10, 'Asistió');
+    
+    expect(res).toBe('No se puede modificar una cita cancelada');
+  });
+```
 
 ---
 
-### Cadena 3 — [Nombre HU]
+### Cadena 3 — [HU-07 Bloqueo de horarios]
 
-> Mismo formato.
+**Historia de Usuario:**
+> Como especialista(psicologo) quiero marcar horarios especifico como bloqueados para evitar que se programen citas en esos tiempos.
+
+**Criterio de Aceptación elegido:**
+> Al intentar agendar una cita en un horario que esta marcado como bloqueado, el sistema debe mostrar un mensaje de horario bloqueado.
+
+**Prueba que valida este CA:**
+```csharp / typescript
+it('rechazar el registro si la hora esta bloqueada', async () => {
+    // Arr: Se simula la situacion de un bloqueo de horario desde el mock...
+    mockRespuesta = { data: { es_bloqueo: true }, error: null };
+
+    const citaPrueba = {
+      nombre: 'Yan', apellido: 'Poloni', ci: '344', telefono: '3155312',
+      fecha: '2026-10-13', hora_inicio: '12:00', hora_fin: '13:00', nota: ''
+    };
+
+    // Ac--As: Aqui se intenta registrar la cita, pero debe ser rechazada
+    const res = await service.registrarCita(citaPrueba);
+    
+    expect(res).toBe('Horario bloqueado');
+  });
+```
